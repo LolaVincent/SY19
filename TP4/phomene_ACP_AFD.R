@@ -6,11 +6,6 @@
 phoneme <- read.table("phoneme.data", sep = ",", header = TRUE)
 phoneme_quant <- phoneme[,2:257]
 n <- nrow(phoneme_quant)
-ntrain <- floor(2/3*n)
-ntest <- n - ntrain
-dtrain <- sample(1:n, ntrain)
-train_quant <- spam[dtrain,]
-test_quant <- spam[-dtrain,]
 acp <- princomp(phoneme_quant) #Prétraitement --> réduction variables
 
 #ACP sur composantes 1 et 2 :
