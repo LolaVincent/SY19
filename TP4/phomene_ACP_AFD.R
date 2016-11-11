@@ -4,19 +4,29 @@
 
 #Récupération des données :
 phoneme <- read.table("phoneme.data", sep = ",", header = TRUE)
-phoneme_quant <- phoneme[,2:257]
-acp <- princomp(phoneme_quant) #Prétraitement --> réduction variables
+#phoneme_quant <- phoneme[,2:257]
+n <- nrow(phoneme)
+ntrain <- floor(2/3*n)
+ntest <- n - ntrain
+dtrain <- sample(1:n, ntrain)
+phoneme.train <- phoneme[dtrain,]
+phoneme.test <- phoneme[-dtrain,]
+phoneme.trainquant <- phoneme.train[,2:257]
+phoneme.testquant <- phoneme.test[,2:257]
+acp <- princomp(phoneme.trainquant) #Prétraitement --> réduction variables
 
 #ACP sur composantes 1 et 2 :
-plot(acp$scores, pch=16, col=palette()[phoneme$g])
+plot(acp$scores, pch=16, col=palette()[phoneme.train$g])
 abline(h=0, v=0) #3 groupes qui se distinguent
 legend("topright", inset=.05, title="Phoneme", c("aa", "ao", "dcl","iy","sh"), fill=palette(), horiz=FALSE)
 
 #ACP sur composantes 2 et 3 :
-plot(acp$scores[,c(2,3)], pch=16, col=palette()[phoneme$g])
+plot(acp$scores[,c(2,3)], pch=16, col=palette()[phoneme.train$g])
 abline(h=0, v=0) #3 groupes qui se distinguent
 legend("topright", inset=.05, title="Phoneme", c("aa", "ao", "dcl","iy","sh"), fill=palette(), horiz=FALSE)
 
+phoneme.knn <- knn(train = acp$scores, test = phoneme.testquant, cl = phoneme.train[,258], k=5)
+phoneme.knn # Marche pas :(
 #ACP permet de supprimer le bruit 
 #puis AFD sélectionne les var les + discriminantes possibles parmi elles
 
