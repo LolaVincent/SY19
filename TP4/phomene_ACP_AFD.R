@@ -5,7 +5,6 @@
 #Récupération des données :
 phoneme <- read.table("phoneme.data", sep = ",", header = TRUE)
 phoneme_quant <- phoneme[,2:257]
-n <- nrow(phoneme_quant)
 acp <- princomp(phoneme_quant) #Prétraitement --> réduction variables
 
 #ACP sur composantes 1 et 2 :
