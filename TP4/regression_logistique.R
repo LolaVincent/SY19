@@ -14,6 +14,7 @@ sum(perf.glm[1:2,2], perf.glm[3:5,1])/nrow(test) # 1.3 % d'erreur
 library(pROC)
 roc_curve_reg<-roc(as.numeric(test$g), as.vector(pred.glm))
 plot(roc_curve_reg, col='red')
+auc(roc_curve_reg) #Aire sous la courbe --> Plus elle est gde, meilleure méthode
 
 # Comparaison avec la lda : 
 lda.g <- lda(as.matrix(as.numeric(app$g))~ ., data = app)
