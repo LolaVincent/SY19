@@ -9,6 +9,8 @@ pred.glm<-predict(glm.g,newdata=test,type='link')
 perf.glm <- table(as.numeric(test$g), pred.glm>2.5)
 sum(perf.glm[1:2,2], perf.glm[3:5,1])/nrow(test) # 1.3 % d'erreur 
 
+#Ici family=gaussian par défaut, utiliser glmnet du CRAN
+
 library(pROC)
 roc_curve_reg<-roc(as.numeric(test$g), as.vector(pred.glm))
 plot(roc_curve_reg, col='red')
