@@ -1,8 +1,5 @@
-source("phomene_ACP_AFD.R")
+source("phomene_data.R")
 #Régression logistique : 
-
-app = as.data.frame(phoneme.train[,2:258])
-test = phoneme.test[,2:258]
 
 glm.g <- glm(as.numeric(app$g)~ ., data = app)
 pred.glm<-predict(glm.g,newdata=test,type='link')
