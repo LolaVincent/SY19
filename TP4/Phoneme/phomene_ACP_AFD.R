@@ -85,4 +85,3 @@ perf.knn.afd2 <- table(phoneme.test[,258], phoneme.knn.afd2)
 
 #La meilleure méthode a adopter au vu des résultats sur KNN est l'AFD seule 
 #car c'est elle qui offre une meilleure séparation des clusters
-

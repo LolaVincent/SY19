@@ -1,25 +1,40 @@
-source("phomene_data.R")
+source("phoneme_data.R")
+source("phomene_ACP_AFD.R")
 #Régression logistique : 
 
-glm.g <- glm(as.numeric(app$g)~ ., data = app)
-pred.glm<-predict(glm.g,newdata=test,type='link')
-perf.glm <- table(as.numeric(test$g), pred.glm>2.5)
-sum(perf.glm[1:2,2], perf.glm[3:5,1])/nrow(test) # 1.3 % d'erreur 
-
-#Ici family=gaussian par défaut, utiliser glmnet du CRAN
-
+library(glmnet)
 library(pROC)
-roc_curve_reg<-roc(as.numeric(test$g), as.vector(pred.glm))
-plot(roc_curve_reg, col='red')
-auc(roc_curve_reg) #Aire sous la courbe --> Plus elle est gde, meilleure méthode
+library(MASS)
 
-# Comparaison avec la lda : 
-lda.g <- lda(as.matrix(as.numeric(app$g))~ ., data = app)
-pred.lda <- predict(lda.g,newdata=test)
-perf.lda <- table(as.numeric(test$g), pred.lda$class)
-(sum(perf.lda)-sum(diag(perf.lda)))/nrow(test)
-# Est ce qu'on peut le faire avec plus de 2 classes ?? ici pred.lda$x contient 4 colonnes donc vecteur trop grand par rapport à test$g ) 
-roc_curve_lda<-roc(as.numeric(test$g), as.vector(as.numeric(pred.lda$x))) #marche pas :(
-plot(roc_curve_lda, add=TRUE) 
+app = as.data.frame(phoneme.train[,2:258])
+test = phoneme.test[,2:258]
 
 
+glm.g <- cv.glmnet(as.matrix(phoneme.trainquant), app$g, family="multinomial") #cross-validation
+pred.g <- predict(glm.g2, newx = as.matrix(phoneme.testquant), type = "class")
+perf.g <- table(test$g, pred.g2)
+(sum(perf.g)-sum(diag(perf.g)))/ntest # 7,5% d'erreur
+
+roc_curve_reg<-roc(as.numeric(test$g), as.numeric(as.factor(pred.g2)))
+plot(roc_curve_reg, col='red') # fonctionne mais courbe bizarre
+auc(roc_curve_reg) #Aire sous la courbe --> Plus elle est gde, meilleure méthode  
+
+
+#regression logistique après ACP
+
+glm.g.acp <- cv.glmnet(acp.train$scores, app$g, family="multinomial") #cross-validation
+pred.g.acp <- predict(glm.g.acp, newx = as.matrix(acp.test$scores), type = "class")
+perf.g.acp <- table(phoneme.test[,258], pred.g.acp)
+(sum(perf.g.acp)-sum(diag(perf.g.acp)))/ntest # 17% d'erreur
+
+#regression logistique après AFD
+glm.g.afd <- cv.glmnet(Z, phoneme.train[,258], family="multinomial") #cross-validation
+pred.g.afd <- predict(glm.g.afd, newx = Ztest, type = "class")
+perf.g.afd <- table(phoneme.test[,258], pred.g.afd)
+(sum(perf.g.afd)-sum(diag(perf.g.afd)))/ntest # 5.19% d'erreur
+
+#regression logistique après ACP et AFD
+glm.g.acf <- cv.glmnet(Z2, phoneme.train[,258], family="multinomial") #cross-validation
+pred.g.acf <- predict(glm.g.acf, newx = Ztest2, type = "class")
+perf.g.acf <- table(phoneme.test[,258], pred.g.acf)
+(sum(perf.g.acf)-sum(diag(perf.g.acf)))/ntest # 10% d'erreur
