@@ -7,7 +7,7 @@ summary(breastcan)
 n <- nrow(breastcan)
 ntrain <- floor(2/3*n)
 ntest <- n - ntrain
-train <- sample(1:n, ntrain)
+dtrain <- sample(1:n, ntrain)
 train <- breastcan[dtrain,]
 test <- breastcan[-dtrain,]
 traindata <- train[,1:32]
