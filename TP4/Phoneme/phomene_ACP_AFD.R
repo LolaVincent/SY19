@@ -83,7 +83,7 @@ legend("topleft", inset=.05, title="Phoneme", c("aa", "ao", "dcl","iy","sh"), fi
 #knn après AFD/ACP
 phoneme.knn.afd2 <- knn(train = Z2, test = Ztest2, cl = phoneme.trainclass, k=9)
 perf.knn.afd2 <- table(phoneme.test[,258], phoneme.knn.afd2)
-(sum(perf.knn.afd2)-sum(diag(perf.knn.afd2)))/ntest #70%....  
+(sum(perf.knn.afd2)-sum(diag(perf.knn.afd2)))/ntest #11%  
 
 #La meilleure méthode a adopter au vu des résultats sur KNN est l'AFD seule 
 #car c'est elle qui offre une meilleure séparation des clusters
