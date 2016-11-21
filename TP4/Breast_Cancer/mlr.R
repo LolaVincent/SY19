@@ -1,7 +1,7 @@
 source("cancer_data.R")
 #Multiple Linear Regression
 lm.bc = lm(as.matrix(train[33])~. , data=traindata)
-summary(lm.bc) #Grands residuals et très grand RSE=32%
+summary(lm.bc) #Grands residuals et très grand RSE=32
 confint(lm.bc) # Bornes de l'intervalle de confiance
 plot(fitted(lm.bc), as.matrix(train[33]))  #valeurs prédites yhat en fonction des yi 
 #--> pas de relation visible sur ce graphique
@@ -24,6 +24,9 @@ reg.summary$rsq
 plot(reg.summary$adjr2, xlab="Number of Variables", ylab="Adjusted RSq", type="l") #RSS en fonction de R2 ajusté
 which.max(reg.summary$adjr2) #16 --> model avec le plus grand R2
 points(16, reg.summary$adjr2[16], col="red", cex=2, pch=20)
+plot(reg.summary$rss, xlab="Number of Variables", ylab="Adjusted RSq", type="l") #RSS en fonction de R2 ajusté
+which.max(reg.summary$rss) #16 --> model avec le plus grand R2
+points(16, reg.summary$rss[16], col="red", cex=2, pch=20)
 #On cherche le plus grand R2 ou le plus faible RSS
 #method='exhaustive' --> best subset selection
 #method='forward' --> stepwise selection

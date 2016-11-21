@@ -48,11 +48,11 @@ Ztest <- Xtest%*%Utest
 cp1 <- 1
 cp2 <- 2
 
-plot(Z[phoneme.train[,258]=="aa",cp1],Z[phoneme.train[,258]=="aa",cp2],xlim=range(Z[,1]),ylim=range(Z[,2]),xlab="Z1",ylab="Z2")
-points(Z[phoneme.train[,258]=="ao",cp1],Z[phoneme.train[,258]=="ao",cp2],pch=2,col="blue")
-points(Z[phoneme.train[,258]=="dcl",cp1],Z[phoneme.train[,258]=="dcl",cp2],pch=3,col="red")
-points(Z[phoneme.train[,258]=="iy",cp1],Z[phoneme.train[,258]=="iy",cp2],pch=4,col="pink")
-points(Z[phoneme.train[,258]=="sh",cp1],Z[phoneme.train[,258]=="sh",cp2],pch=5,col="yellow")
+plot(Z[phoneme.train[,258]=="aa",cp1],Z[phoneme.train[,258]=="aa",cp2],xlim=range(Z[,1]),ylim=range(Z[,2]),xlab="Z1",ylab="Z2", pch=16)
+points(Z[phoneme.train[,258]=="ao",cp1],Z[phoneme.train[,258]=="ao",cp2],pch=16,col="blue")
+points(Z[phoneme.train[,258]=="dcl",cp1],Z[phoneme.train[,258]=="dcl",cp2],pch=16,col="red")
+points(Z[phoneme.train[,258]=="iy",cp1],Z[phoneme.train[,258]=="iy",cp2],pch=16,col="pink")
+points(Z[phoneme.train[,258]=="sh",cp1],Z[phoneme.train[,258]=="sh",cp2],pch=16,col="yellow")
 legend("topleft", inset=.05, title="Phoneme", c("aa", "ao", "dcl","iy","sh"), fill=c("black","blue","red","pink","yellow"), horiz=TRUE)
 
 #knn après AFD
