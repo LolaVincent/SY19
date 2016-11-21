@@ -24,7 +24,7 @@ follows:
 From each speech frame, we computed a log-periodogram, which is one of
 several widely used methods for casting speech data in a form suitable
 for speech recognition.  Thus the data used in what follows consist of
-  of length 256, with known class (phoneme)
+4509 log-periodograms of length 256, with known class (phoneme)
 memberships. 
 
 The data contain 256 columns labelled "x.1" - "x.256", a response

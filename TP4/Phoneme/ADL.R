@@ -1,12 +1,13 @@
-source("phoneme_data.R")
-source("phomene_ACP_AFD.R")
+adlErrorRate <- vector(length = 5)
+for (i in 1:5) {
+  source("phoneme_data.R")
+  lda.g <- lda(as.matrix(as.numeric(app$g))~ ., data = app)
+  pred.lda <- predict(lda.g,newdata=test)
+  perf.lda <- table(as.numeric(test$g), pred.lda$class)
+  adlErrorRate[i] <- (sum(perf.lda)-sum(diag(perf.lda)))/nrow(test) #7,7 %
+}
 
-# Comparaison avec la lda : 
-lda.g <- lda(as.matrix(as.numeric(phoneme.train[,258]))~ ., data = phoneme.trainquant)
-pred.lda <- predict(lda.g,newdata=phoneme.testquant)
-perf.lda <- table(as.numeric(phoneme.test[,258]), pred.lda$class)
-(sum(perf.lda)-sum(diag(perf.lda)))/nrow(test) #7,7 %
-
+mean(adlErrorRate)
 
 
 # Est ce qu'on peut le faire avec plus de 2 classes ?? ici pred.lda$x contient 4 colonnes donc vecteur trop grand par rapport à test$g ) 
