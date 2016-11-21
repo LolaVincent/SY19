@@ -34,6 +34,7 @@ lm.bc = lm(as.matrix(train[33])~texture_mean+area_mean+compactness_mean+concave_
 summary(lm.bc) # RSE=32%
 plot(fitted(lm.bc), as.matrix(train[33]))  #valeurs prédites yhat en fonction des yi 
 #--> pas de relation visible sur ce graphique
+reg.pred <- predict(lm.bc, testdata, interval="confidence")
 
 reg.fwd <- regsubsets(as.matrix(train[33])~., data=traindata, method='forward', nvmax=32)
 plot(reg.fwd, scale='r2')
