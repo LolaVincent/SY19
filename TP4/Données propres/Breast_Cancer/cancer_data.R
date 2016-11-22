@@ -1,6 +1,7 @@
 #Breast cancer data
 #Task : predicting time to recur
 
+#Récupération des données :
 breastcan <- read.table("r_breast_cancer.data", sep = ",", header = TRUE)
 summary(breastcan)
 
