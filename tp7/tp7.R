@@ -19,3 +19,6 @@ data_acp <- prcomp(data_not_null) # scale =TRUE données normées, pas princomp 
 
 
 pairs(data_acp$x[,1:5], col=palette()[y])
+
+
+
