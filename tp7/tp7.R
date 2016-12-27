@@ -1,6 +1,6 @@
 data <- load("data_expressions.RData")
 X # données
-Y # classification
+y # classification
 X[i] # 
 
 
@@ -16,9 +16,6 @@ data_not_null <- data_not_null[,2:ncol(data_not_null)]
 
 data_acp <- prcomp(data_not_null) # scale =TRUE données normées, pas princomp trop de variables par rapport au nombre d'individus
 #package factoextra pour la foncion get_pca_var
-
-
-pairs(data_acp$x[,1:5], col=palette()[y])
 
 
 
