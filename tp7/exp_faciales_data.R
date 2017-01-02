@@ -1,7 +1,7 @@
 data <- load("data_expressions.RData")
 X # données
 y # classification
-X[i] # 
+
 
 #Les données consistent en une matrice X de taille 216 × 4200 et un vecteur y de longueur 216. 
 #Chaque ligne X[i,] contient les niveaux de gris d’une image de taille 60 × 70.
@@ -9,6 +9,7 @@ X[i] #
 # y -> 1 colonnes  et 216 lignes,  valeurs possibles -> 1 à 6 
 
 #Visualisation des images
+i=2 # exemple
 I<-matrix(X[i,],60,70)
 I1 <- apply(I, 1, rev)
 image(t(I1),col=gray(0:255 / 255))

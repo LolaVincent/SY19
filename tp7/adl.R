@@ -1,5 +1,4 @@
-source(exp_faciales_data.R)
-source(acp.R)
+source("acp.R")
 library(MASS)
 library(lda)
 
@@ -20,8 +19,6 @@ nbCompo <- c(2, 5, 10, 20, 30, 40, 50, 100)
 nbCompoErrorRate <-  vector(length = 8)
 j = 0
 for (nb in nbCompo) {
-  print(nb)
-  print(j)
   j = j + 1
   for (i in 1:10) {
     #ACP + séparation en ensemble de test et d'apprentissage

@@ -1,6 +1,4 @@
-source(exp_faciales_data.R)
-source(acp.R)
-source(lda.R)
+source("adl.R")
 
 library(MASS)
 
