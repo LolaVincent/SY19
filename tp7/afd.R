@@ -17,6 +17,7 @@ Utest <- lda.test$scaling
 Xtest <- as.matrix(data.acp.test[,1:20])
 Ztest <- Xtest%*%Utest
 
+
 #Composantes de l'AFD à utiliser : 
 cp1 <- 1
 cp2 <- 2
@@ -28,6 +29,6 @@ points(Z[data.acp.trainclass==3,cp1],Z[data.acp.trainclass==3,cp2],pch=16,col="r
 points(Z[data.acp.trainclass==4,cp1],Z[data.acp.trainclass==4,cp2],pch=16,col="pink")
 points(Z[data.acp.trainclass==5,cp1],Z[data.acp.trainclass==5,cp2],pch=16,col="yellow")
 points(Z[data.acp.trainclass==6,cp1],Z[data.acp.trainclass==6,cp2],pch=16,col="green")
-legend(-7, 12, xpd=TRUE, inset=.05, title="Expressions", c("1", "2", "3","4","5", "6"), fill=c("black","blue","red","pink","yellow", "green"), horiz=TRUE)
+legend(-5, 9, xpd=TRUE, inset=.05, title="Expressions", c("1", "2", "3","4","5", "6"), fill=c("black","blue","red","pink","yellow", "green"), horiz=TRUE)
 
 #plot intéressant pour les 2 premières composantes on voit bien les 6 groupes

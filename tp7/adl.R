@@ -1,14 +1,6 @@
 source("acp.R")
 library(MASS)
 library(lda)
-
-lda.exp <- lda(as.matrix(data.trainclass) ~ data.train, data = data.frame(data.train, data.trainclass))
-# problèmes car les variables sont colinéaires, vaut mieux faire après ACP
-pred.lda <- predict(lda.exp, newdata=as.data.frame(data.test))
-perf.lda <- table(data.testclass, pred.lda$class)
-(sum(perf.lda)-sum(diag(perf.lda)))/nrow(test)
-
-
 #ADL sur ACP
 #ACP sur l'ensemble des données sans les 0 et après séparation en un ensemble d'apprentissage et de test
 #valeurs différentes du nombre de composantes (nbCompo) et plusieurs fois (ici 10) pour avoir la moyenne de l'erreur
