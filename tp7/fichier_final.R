@@ -168,5 +168,7 @@ for(i in 1:K) {
 }
 error_rate
 mean(error_rate)
-boxplot(error_rate) #moyenne 10.4%
+median(error_rate)
+boxplot(error_rate) 
+#médiane 9.4%, moyenne 10.4%
 
