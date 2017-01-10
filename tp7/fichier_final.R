@@ -301,7 +301,7 @@ plot(roc_curve)
 
 #--------------------------------------- Trees ---------------------------------------#
 
-#Arbre : 
+#Arbre ACP+ AFD : 
 tree.expr = tree(traindata$y ~ .,traindata)
 summary(tree.expr)
 plot(tree.expr)
@@ -311,7 +311,7 @@ text(tree.expr, pretty = 0)
 tree.pred=predict(tree.expr, testdata, type="class")
 tree.perf <- table(tree.pred, testclass)
 (sum(tree.perf)-sum(diag(tree.perf)))/nrow(testdata) 
-#18% d'erreur
+#12% d'erreur
 
 #Elagage : 
 cv.tree.expr = cv.tree(tree.expr, FUN = prune.misclass) 
@@ -325,6 +325,7 @@ plot(cv.tree.expr$k, cv.tree.expr$dev, type="b")
 
 #On élague au nombre de noeuds conseillés
 prune.tree.expr = prune.misclass(tree.expr, best=nb_nodes)
+summary(prune.tree.expr)
 par(mfrow=c(1,1))
 plot(prune.tree.expr)
 text(prune.tree.expr, pretty=0)
@@ -333,4 +334,26 @@ text(prune.tree.expr, pretty=0)
 tree.pred=predict(prune.tree.expr, testdata, type="class")
 tree.perf <- table(tree.pred, testclass)
 (sum(tree.perf)-sum(diag(tree.perf)))/nrow(testdata) 
-#16%
+#5%
+
+par(mfrow=c(1,2))
+plot(tree.expr)
+text(tree.expr, pretty = 0)
+plot(prune.tree.expr)
+text(prune.tree.expr, pretty=0)
+
+#--------------------------------------- Random Forest ---------------------------------------#
+library(randomForest)
+
+rand.forest = randomForest(traindata$y ~ .,data=traindata, ranges=list(
+  ntree=c(25, 50, 100, 250, 500, 750),
+  mtry=c(1:15))
+)
+
+rand.forest
+pred.forest  = predict(rand.forest, newdata = testdata)
+forest.perf <- table(pred.forest, testclass)
+(sum(forest.perf)-sum(diag(forest.perf)))/nrow(testdata) 
+#7.69%
+importance(rand.forest)
+varImpPlot(rand.forest)
