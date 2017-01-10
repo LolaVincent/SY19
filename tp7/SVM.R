@@ -13,7 +13,7 @@ testclass <- afd.testclass
 ####GENERAL TUNING : COMPARISON ACP VS ACP+AFD###
 afd.tune = tune(svm, train.y=traindata$y , train.x=traindata[1:5], ranges=list(
               kernel=c("linear", "polynomial", "radial", "sigmoid"),
-              cost=c(0.0001, 0.001, 0.01, 0.1, 1:10),
+              cost=c(1:10),
               gamma=c(0.00001,0.0001,0.005, 0.001,0.01,.5),
               degree=c(1:5)
   )
@@ -23,7 +23,7 @@ afd.tune
 
 acp.tune = tune(svm, train.y=acp_traindata$y , train.x=acp_traindata[1:nb_comp], ranges=list(
   kernel=c("linear", "polynomial", "radial", "sigmoid"),
-  cost=c(0.0001, 0.001, 0.01, 0.1, 1:10),
+  cost=c(1:10),
   gamma=c(0.00001,0.0001,0.005, 0.001,0.01,.5),
   degree=c(1:5)
 )
@@ -41,19 +41,22 @@ default_svm.perf <- table(default_svm.pred, testclass)
 (sum(default_svm.perf)-sum(diag(default_svm.perf)))/nrow(testdata) 
 #5% d'erreur
 
-kk <- data.frame(testdata)
-
 svm_tune <- tune(svm, train.y=traindata$y , train.x=traindata[1:5], 
                  kernel="radial", ranges=list(cost=10^(-1:2), gamma=c(0.0001, 0.001, 0.002, 0.005,0.01, 0.05,.5,1,2)))
-svm_tune$performances
+svm_tune
 #Cost : 10, gamma : 0.002
 
-default_svm_after_tune <- svm(traindata$y~., data=traindata, kernel="radial", cost=5, gamma=0.005)
+default_svm_after_tune <- svm(traindata$y~., data=traindata, kernel="radial", cost=100, gamma=1e-04)
 summary(default_svm_after_tune)
 default_svm.pred_tune <- predict(default_svm_after_tune, testdata)
 default_svm.perf_tune <- table(default_svm.pred_tune, testclass)
 (sum(default_svm.perf_tune)-sum(diag(default_svm.perf_tune)))/nrow(testdata) 
 #12.5% d'erreur
+
+
+library(pROC)
+roc_curve<-roc(testclass, as.numeric(default_svm.pred))
+plot(roc_curve)
 
 ####LINEAR###
 linear_svmfit = svm(traindata$y~., data=traindata, kernel="linear")

@@ -22,3 +22,27 @@ perf.naive.afd <-table(data.acp.testclass, pred.naive.afd)
 (sum(perf.naive.afd)-sum(diag(perf.naive.afd)))/nrow(data.acp.test) 
 #36% d'erreur, plus qu'avec l'ACP
 
+#Après ACP/AFD - cross-validation
+K <- 5
+folds <- sample(1:K, nrow(Z), replace=TRUE)
+error_rate <- vector(length = K)
+for(i in 1:K) {
+  df.afd.train <- data.frame(Z[(folds!=i),], y= y[(folds!=i),])
+  df.afd.train$y = as.factor(y[(folds!=i),])
+  afd.test <- data.frame(Z[(folds==i),])
+  afd.testclass <- y[(folds==i),]
+  
+  naive.afd <- naiveBayes(df.afd.train$y~., data=df.afd.train)
+  pred.naive.afd <-predict(naive.afd, newdata=afd.test)
+  perf.naive.afd <-table(afd.testclass, pred.naive.afd)
+  error_rate[i] <- (sum(perf.naive.afd)-sum(diag(perf.naive.afd)))/nrow(afd.test) 
+}
+error_rate
+mean(error_rate) #10.0%
+median(error_rate) #9.4%
+var(error_rate)
+boxplot(error_rate)
+
+library(pROC)
+roc_curve<-roc(testclass, as.numeric(pred.naive.afd))
+plot(roc_curve)

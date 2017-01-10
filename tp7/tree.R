@@ -1,16 +1,14 @@
 #Arbres de décision
 source(exp_faciales_data.R)
-source(acp.R)
+source(acp+afd+adl.R)
 library(tree)
 
-nb_comp = 20
+traindata <- df.afd.train
+testdata <- afd.test
+testclass <- afd.testclass
 
-traindata <- data.frame(data.acp.train[,1:nb_comp], data.acp.trainclass)
-traindata$data.acp.trainclass <- as.factor(traindata$data.acp.trainclass)
-testdata <- data.frame(data.acp.test[,1:nb_comp])
-testclass <- as.factor(data.acp.testclass)
-
-tree.expr = tree(data.acp.trainclass ~ .,traindata)
+#Arbre : 
+tree.expr = tree(traindata$y ~ .,traindata)
 summary(tree.expr)
 plot(tree.expr)
 text(tree.expr, pretty = 0)
@@ -18,8 +16,10 @@ text(tree.expr, pretty = 0)
 #Prédiction sans élagage : 
 tree.pred=predict(tree.expr, testdata, type="class")
 tree.perf <- table(tree.pred, testclass)
-(sum(tree.perf)-sum(diag(tree.perf)))/nrow(data.acp.test) 
+(sum(tree.perf)-sum(diag(tree.perf)))/nrow(testdata) 
+#18% d'erreur
 
+#Elagage : 
 cv.tree.expr = cv.tree(tree.expr, FUN = prune.misclass) 
 #Cross-validation pour trouver le meilleur élagage
 #Taux d'erreur : $dev
@@ -29,14 +29,17 @@ par(mfrow=c(1,2))
 plot(cv.tree.expr$size, cv.tree.expr$dev, type="b")
 plot(cv.tree.expr$k, cv.tree.expr$dev, type="b")
 
-prune.tree.expr = prune.misclass(tree.expr, best=10)
+#On élague au nombre de noeuds conseillés
+prune.tree.expr = prune.misclass(tree.expr, best=nb_nodes)
 par(mfrow=c(1,1))
 plot(prune.tree.expr)
 text(prune.tree.expr, pretty=0)
 
+#Prédiction après élagage :
 tree.pred=predict(prune.tree.expr, testdata, type="class")
 tree.perf <- table(tree.pred, testclass)
-(sum(tree.perf)-sum(diag(tree.perf)))/nrow(data.acp.test) 
+(sum(tree.perf)-sum(diag(tree.perf)))/nrow(testdata) 
+#16%
 
 ########################################################################################################################
 

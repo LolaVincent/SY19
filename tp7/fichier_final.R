@@ -172,3 +172,165 @@ median(error_rate)
 boxplot(error_rate) 
 #médiane 9.4%, moyenne 10.4%
 
+
+########### 1: Classifieur bayésien naïf ########### 
+library(e1071)
+K <- 5
+folds <- sample(1:K, nrow(Z), replace=TRUE)
+error_rate <- vector(length = K)
+for(i in 1:K) {
+  df.afd.train <- data.frame(Z[(folds!=i),], y= y[(folds!=i),])
+  df.afd.train$y = as.factor(y[(folds!=i),])
+  afd.test <- data.frame(Z[(folds==i),])
+  afd.testclass <- y[(folds==i),]
+  
+  naive.afd <- naiveBayes(df.afd.train$y~., data=df.afd.train)
+  pred.naive.afd <-predict(naive.afd, newdata=afd.test)
+  perf.naive.afd <-table(afd.testclass, pred.naive.afd)
+  error_rate[i] <- (sum(perf.naive.afd)-sum(diag(perf.naive.afd)))/nrow(afd.test) 
+}
+error_rate
+mean(error_rate)
+median(error_rate)
+boxplot(error_rate)
+#11%
+
+#--------------------------------------- SVM ---------------------------------------#
+
+acp_traindata <- data.frame(data.acp.train[,1:nb_comp], y=as.factor(data.acp.trainclass))
+acp_testdata <- data.frame(data.acp.test[,1:nb_comp])
+acp_testclass <- as.factor(data.acp.testclass)
+
+traindata <- df.afd.train
+testdata <- afd.test
+testclass <- afd.testclass
+
+####GENERAL TUNING : COMPARISON ACP VS ACP+AFD###
+afd.tune = tune(svm, train.y=traindata$y , train.x=traindata[1:5], ranges=list(
+  kernel=c("linear", "polynomial", "radial", "sigmoid"),
+  cost=c(1:10),
+  gamma=c(0.00001,0.0001,0.005, 0.001,0.01,.5),
+  degree=c(1:5)
+)
+)
+afd.tune
+#Best perf : 9% avec sigmoid kernel, cost 8 
+
+acp.tune = tune(svm, train.y=acp_traindata$y , train.x=acp_traindata[1:nb_comp], ranges=list(
+  kernel=c("linear", "polynomial", "radial", "sigmoid"),
+  cost=c(1:10),
+  gamma=c(0.00001,0.0001,0.005, 0.001,0.01,.5),
+  degree=c(1:5)
+)
+)
+acp.tune
+#Best performance : 20% avec linear kernel cost=2 
+
+######Radial : 
+library(e1071)
+traindata <- df.afd.train
+testdata <- afd.test
+testclass <- afd.testclass
+
+K <- 5
+folds <- sample(1:K, nrow(Z), replace=TRUE)
+error_rate <- vector(length = K)
+for(i in 1:K) {
+  traindata <- data.frame(Z[(folds!=i),], y= as.factor(y[(folds!=i),]))
+  testdata <- data.frame(Z[(folds==i),])
+  testclass <- y[(folds==i),]
+  
+  default_svmfit = svm(traindata$y~., data=traindata)  
+  default_svm.pred <- predict(default_svmfit, testdata)
+  default_svm.perf <- table(default_svm.pred, testclass)
+  error_rate[i] <- (sum(default_svm.perf)-sum(diag(default_svm.perf)))/nrow(testdata) 
+}
+error_rate
+mean(error_rate)
+median(error_rate)
+boxplot(error_rate)
+
+default_svmfit = svm(traindata$y~., data=traindata)
+summary(default_svmfit) 
+#Kernel : radial, cost = 1, gamma = 0.05
+default_svm.pred <- predict(default_svmfit, testdata)
+default_svm.perf <- table(default_svm.pred, testclass)
+(sum(default_svm.perf)-sum(diag(default_svm.perf)))/nrow(testdata) 
+#7.69% d'erreur
+
+####LINEAR###
+linear_svmfit = svm(traindata$y~., data=traindata, kernel="linear")
+summary(linear_svmfit) 
+#Kernel : linear, cost = 1, gamma = 0.05
+linear_svm.pred <- predict(linear_svmfit, testdata)
+linear_svm.perf <- table(linear_svm.pred, testclass)
+(sum(linear_svm.perf)-sum(diag(linear_svm.perf)))/nrow(testdata) 
+
+####POLYNOMIAL###
+svmfit = svm(traindata$y~., data=traindata, kernel="polynomial")
+summary(svmfit) 
+#Kernel : linear, cost = 1, degree=3 gamma = 0.05, coef=0
+svm.pred <- predict(svmfit, testdata)
+svm.perf <- table(svm.pred,testclass)
+(sum(svm.perf)-sum(diag(svm.perf)))/nrow(testdata) 
+
+svm_tune <- tune(svm, train.y=traindata$y , train.x=traindata[1:5], 
+                 kernel="polynomial", ranges=list(degre=c(1,2,3,4,5),cost=10^(-1:2), gamma=c(0.00001, 0.00005,0.0001, 0.001)))
+svm_tune
+#Cost : 0.1, gamma : 1e-05
+
+svm_after_tune <- svm(traindata$y~., data=traindata, kernel="polynomial", cost=100, gamma=0.001, degree=1)
+summary(svm_after_tune)
+svm.pred <- predict(svm_after_tune, testdata)
+svm.perf <- table(svm.pred, testclass)
+(sum(svm.perf)-sum(diag(svm.perf)))/nrow(testdata) 
+#25% d'erreur
+
+#####SIGMOID
+svmfit = svm(traindata$y~., data=traindata, kernel="sigmoid")
+summary(svmfit) 
+#Kernel : sigmoid, cost = 1, gamma = 0.05, coef=0
+svm.pred <- predict(svmfit,testdata)
+svm.perf <- table(svm.pred, testclass)
+(sum(svm.perf)-sum(diag(svm.perf)))/nrow(testdata) 
+#9.7% d'erreur
+
+library(pROC)
+roc_curve<-roc(testclass, as.numeric(linear_svm.pred))
+plot(roc_curve)
+
+#--------------------------------------- Trees ---------------------------------------#
+
+#Arbre : 
+tree.expr = tree(traindata$y ~ .,traindata)
+summary(tree.expr)
+plot(tree.expr)
+text(tree.expr, pretty = 0)
+
+#Prédiction sans élagage : 
+tree.pred=predict(tree.expr, testdata, type="class")
+tree.perf <- table(tree.pred, testclass)
+(sum(tree.perf)-sum(diag(tree.perf)))/nrow(testdata) 
+#18% d'erreur
+
+#Elagage : 
+cv.tree.expr = cv.tree(tree.expr, FUN = prune.misclass) 
+#Cross-validation pour trouver le meilleur élagage
+#Taux d'erreur : $dev
+nb_nodes <- cv.tree.expr$size[which.min(cv.tree.expr$dev)] #Nb idéal noeuds terminaux
+
+par(mfrow=c(1,2))
+plot(cv.tree.expr$size, cv.tree.expr$dev, type="b")
+plot(cv.tree.expr$k, cv.tree.expr$dev, type="b")
+
+#On élague au nombre de noeuds conseillés
+prune.tree.expr = prune.misclass(tree.expr, best=nb_nodes)
+par(mfrow=c(1,1))
+plot(prune.tree.expr)
+text(prune.tree.expr, pretty=0)
+
+#Prédiction après élagage :
+tree.pred=predict(prune.tree.expr, testdata, type="class")
+tree.perf <- table(tree.pred, testclass)
+(sum(tree.perf)-sum(diag(tree.perf)))/nrow(testdata) 
+#16%
