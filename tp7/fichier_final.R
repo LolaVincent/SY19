@@ -149,14 +149,9 @@ df.afd.train$y = as.factor(y[dtrain,])
 afd.test <- Z[-dtrain,]
 afd.testclass <- y[-dtrain,]
 
-<<<<<<< HEAD
 
-#Test sur l'ADL   
-lda.afd.exp <- lda(df.afd.train$y ~ ., data = df.afd.train)
-=======
 #Test sur l'ADL pour obtenir le taux d'erreur de l'AFD comme classifieur
-lda.afd.exp <- lda(df.afd.train$afd.trainclass ~ ., data = df.afd.train)
->>>>>>> a504a79e4c6a7be1043d048a097f372261b6f998
+lda.afd.exp <- lda(df.afd.train$y ~ ., data = df.afd.train)
 pred.lda <- predict(lda.afd.exp, newdata=as.data.frame(afd.test))
 perf.lda <- table(afd.testclass, pred.lda$class)
 (sum(perf.lda)-sum(diag(perf.lda)))/nrow(afd.test)
