@@ -89,8 +89,6 @@ for (nb in nbCompo) {
 
 #--------------------------------------- AFD ---------------------------------------#
 
-########### 1: AFD comme méthode de classification supervisée : ########### 
-
 library(MASS)
 
 # on récupère les données après ACP et séparation en deux ensembles
@@ -124,9 +122,6 @@ legend(-7, 12, xpd=TRUE, inset=.05, title="Expressions", c("1", "2", "3","4","5"
 #plot intéressant pour les 2 premières composantes on voit bien les 6 groupes
 
 
-
-########### 1: AFD comme méthode de réduction de dimensions (par dessus l'ACP) : ########### 
-
 #Données de l'ACP : 
 nb_comp <- 20
 acp.data <- data.frame(acp.data_not_null$x[,1:nb_comp], y)
@@ -144,7 +139,7 @@ df.afd.train$y = as.factor(y[dtrain,])
 afd.test <- Z[-dtrain,]
 afd.testclass <- y[-dtrain,]
 
-#Test sur l'ADL
+#Test sur l'ADL pour obtenir le taux d'erreur de l'AFD comme classifieur
 lda.afd.exp <- lda(df.afd.train$afd.trainclass ~ ., data = df.afd.train)
 pred.lda <- predict(lda.afd.exp, newdata=as.data.frame(afd.test))
 perf.lda <- table(afd.testclass, pred.lda$class)
