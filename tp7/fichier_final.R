@@ -17,9 +17,6 @@ data_not_null <- matrix(nrow=216)
 for (i in 1:4200){ if (X[,i]!=0){ data_not_null <- cbind(data_not_null, X[,i]) }}
 data_not_null <- data_not_null[,2:ncol(data_not_null)]
 
-# variables centrées/réduites : 
-non_cor <- sweep(data_not_null, 2, colSums(data_not_null)/216)
-
 #Ensembles d'apprentissage et de test
 n <- nrow(data_not_null)
 ntrain <- floor(2/3*n)
@@ -46,45 +43,58 @@ data.acp.test <- acp.data_not_null$x[-dtrain,]
 data.acp.trainclass <- y[dtrain,]
 data.acp.testclass <- y[-dtrain,]
 
-#--------------------------------------- ADL ---------------------------------------#
+#---------------------------------- ADL et Classifieur Bayésien Naïf avec Cross Validation ----------------------------------#
 library(MASS)
 library(lda)
+library(e1071) #Naive
+
 
 #ADL sur ACP
 #ACP sur l'ensemble des données sans les 0 et après séparation en un ensemble d'apprentissage et de test
 #Valeurs différentes du nombre de composantes (nbCompo) et plusieurs fois (ici 10) pour avoir la moyenne de l'erreur
 
-###### ATTENTION ça peut être long, exemple de résultats en dessous 
-adlErrorRate <- vector(length = 10)
+
+K = 5
 nbCompo <- c(2, 5, 10, 20, 30, 40, 50, 100)
-nbCompoErrorRate <-  vector(length = 8)
-j = 0
-for (nb in nbCompo) {
-  j = j + 1
-  for (i in 1:10) {
-    #ACP + séparation en ensemble de test et d'apprentissage
-    acp.adl.data_not_null <- prcomp(data_not_null)
-    n.adl <- nrow(acp.adl.data_not_null$x)
-    ntrain.adl <- floor(2/3*n)
-    ntest.adl <- n - ntrain
-    dtrain.adl <- sample(1:n, ntrain.adl)
-    data.adl.train <- acp.data_not_null$x[dtrain.adl,]
-    data.adl.test <- acp.data_not_null$x[-dtrain.adl,]
-    data.adl.trainclass <- y[dtrain.adl,]
-    data.adl.testclass <- y[-dtrain.adl,]
-    
-    # analyse discriminante
-    lda.exp.acp <- lda(data.adl.trainclass~ ., data = data.frame(data.adl.train[,1:nb], data.adl.trainclass))
-    pred.lda.acp <- predict(lda.exp.acp, newdata=as.data.frame(data.adl.test[,1:nb]))
-    perf.lda.acp <- table(data.adl.testclass, pred.lda.acp$class)
-    #Taux d'erreur :
-    adlErrorRate[i] <- (sum(perf.lda.acp)-sum(diag(perf.lda.acp)))/ntest.adl
+n.adl <- nrow(data_acp$x)
+folds <- sample(1:K, n.adl, replace=TRUE)
+adlErrorRate <- matrix(-1, nrow=10, ncol=length(nbCompo))
+nbcErrorRate <- matrix(-1, nrow=10, ncol=length(nbCompo))
+for (j in 1:length(nbCompo) ){
+  for (t in 1:10){
+    res.lda.acp  <- 0
+    res.nbc.acp <- 0
+    for (i in 1:K) {
+      #donnees
+      ytrain <- y[(folds!=i)]
+      ytest <-  y[(folds==i)]
+      datatrain <- data.frame(data_acp$x[(folds!=i),1:nbCompo[j]], ytrain)
+      datatrain$ytrain <- as.factor(datatrain$ytrain)
+      datatest <- data.frame(data_acp$x[(folds==i),1:nbCompo[j]])
+      
+      
+      #adl 
+      lda.exp.acp <- lda(ytrain~ ., data = datatrain )
+      pred.lda.acp <- predict(lda.exp.acp, newdata=datatest)
+      perf.lda.acp <- table(ytest, pred.lda.acp$class)
+      #Taux d'erreur :
+      res.lda.acp <- (sum(perf.lda.acp)-sum(diag(perf.lda.acp)))/length(ytest) + res.lda.acp
+      
+      #nbc
+      naive.acp <- naiveBayes(ytrain~., data=datatrain)
+      pred.naive.acp <-predict(naive.acp, newdata=datatest)
+      perf.naive.acp <-table(ytest, pred.naive.acp)
+      res.nbc.acp <- res.nbc.acp + (sum(perf.naive.acp)-sum(diag(perf.naive.acp)))/length(ytest)
+    }
+    nbcErrorRate[t,j] <- res.nbc.acp/K
+    adlErrorRate[t,j] <- res.lda.acp/K
   }
-  # moyenne de l'erreur pour un certain nombre de composante
-  nbCompoErrorRate[j] <- mean(adlErrorRate)
 }
-# 0.4111111 0.3361111 0.2958333 0.1375000 0.1611111 0.1708333 0.1708333 0.3041667 0.6958333 (dernière valeur -> 150)
-# 0.4347222 0.3555556 0.3000000 0.1638889 0.1638889 0.1638889 0.1819444 0.3180556
+colMeans(adlErrorRate)
+boxplot(adlErrorRate)
+
+colMeans(nbcErrorRate)
+boxplot(nbcErrorRate)
 
 
 #--------------------------------------- AFD ---------------------------------------#
@@ -144,15 +154,15 @@ df.afd.train$y = as.factor(y[dtrain,])
 afd.test <- Z[-dtrain,]
 afd.testclass <- y[-dtrain,]
 
-#Test sur l'ADL
-lda.afd.exp <- lda(df.afd.train$afd.trainclass ~ ., data = df.afd.train)
+
+#Test sur l'ADL   
+lda.afd.exp <- lda(df.afd.train$y ~ ., data = df.afd.train)
 pred.lda <- predict(lda.afd.exp, newdata=as.data.frame(afd.test))
 perf.lda <- table(afd.testclass, pred.lda$class)
 (sum(perf.lda)-sum(diag(perf.lda)))/nrow(afd.test)
 # 8% d'erreur
 
 #Cross-validation avec K=5 pour le test sur l'ADL (grande variance)
-K <- 5
 folds <- sample(1:K, nrow(Z), replace=TRUE)
 error_rate <- vector(length = K)
 for(i in 1:K) {
@@ -173,8 +183,7 @@ boxplot(error_rate)
 #médiane 9.4%, moyenne 10.4%
 
 
-########### 1: Classifieur bayésien naïf ########### 
-library(e1071)
+########### 1: Classifieur bayésien naïf après AFD ########### 
 K <- 5
 folds <- sample(1:K, nrow(Z), replace=TRUE)
 error_rate <- vector(length = K)
@@ -194,6 +203,63 @@ mean(error_rate)
 median(error_rate)
 boxplot(error_rate)
 #11%
+
+#------------------------------- Réseaux de neurones -------------------------------#
+# Réseaux de neurones avec les données après ACP avec le package nnet
+library(nnet)
+
+data_nnet <- data.frame(data.acp.train[,1:20], data.acp.trainclass)
+data_nnet$data.acp.trainclass = as.factor(data_nnet$data.acp.trainclass)
+name_nnet <- names(data_nnet)
+formula_nnet <- as.formula(paste("data.acp.trainclass ~", paste(name_nnet[!name_nnet %in% "data.acp.trainclass"], collapse = " + ")))
+
+size <- c(30,40, 50, 70, 80, 85, 90, 95, 100) #Test du nombre de noeuds sur la couche. 
+decay <- seq(5*10^-4, 1, 0.1) # paramétrage du poids
+taux_erreur_nnet <- matrix(-1, nrow=length(decay), ncol = length(size))
+
+for (j in 1:length(decay)){
+  for (i in 1:length(size)){
+    model_nnet <-nnet(formula_nnet, data_nnet, MaxNWts = 3000, size = size[i], decay = decay[j])
+    result = max.col(predict(model_nnet, data.acp.test[,1:20]))
+    erreur_nnet <- table(result, data.acp.testclass)
+    taux_erreur_nnet[j,i] <- (sum(erreur_nnet) - sum(diag(erreur_nnet)))/nrow(data.acp.test)
+  }
+}
+colMeans(taux_erreur_nnet)
+rowMeans(taux_erreur_nnet)
+taux_total_acp <- 0
+for (i in 1:length(size)){
+  taux_total_acp <- taux_total_acp + colMeans(taux_erreur_nnet)[i]
+}
+taux_total_acp <- taux_total_acp /length(size)
+boxplot(taux_erreur_nnet)
+
+#  Réseaux de neurones avec les données après AFD avec le package nnet
+
+name_nnet_afd <- names(df.afd.train)
+formula_nnet_afd <- as.formula(paste("y ~", paste(name_nnet_afd[!name_nnet_afd %in% "y"], collapse = " + ")))
+
+size_afd <- c(10,20,30,40, 50, 70, 80, 90, 100)
+decay_afd <- seq(5*10^-4, 1, 0.1)
+taux_erreur_nnet_afd <- matrix(-1, nrow=length(decay_afd), ncol = length(size_afd))
+
+
+for (j in 1:length(decay_afd)){
+  for (i in 1:length(size_afd)){
+    model_nnet_afd <-nnet(formula_nnet_afd, df.afd.train, MaxNWts = 3000, size = size_afd[i], decay = decay_afd[j])
+    result_afd = max.col(predict(model_nnet_afd, afd.test))
+    erreur_nnet_afd <- table(result_afd, afd.testclass)
+    taux_erreur_nnet_afd[j,i] <- (sum(erreur_nnet_afd) - sum(diag(erreur_nnet_afd)))/nrow(data.acp.test)
+  }
+}
+colMeans(taux_erreur_nnet_afd)
+rowMeans(taux_erreur_nnet_afd)
+taux_total_afd <- 0
+for (i in 1:length(size_afd)){
+  taux_total_afd <- taux_total_afd + colMeans(taux_erreur_nnet_afd)[i]
+}
+taux_total_afd <- taux_total_afd /length(size_afd)
+boxplot(taux_erreur_nnet_afd)
 
 #--------------------------------------- SVM ---------------------------------------#
 
@@ -300,7 +366,7 @@ roc_curve<-roc(testclass, as.numeric(linear_svm.pred))
 plot(roc_curve)
 
 #--------------------------------------- Trees ---------------------------------------#
-
+library(tree)
 #Arbre ACP+ AFD : 
 tree.expr = tree(traindata$y ~ .,traindata)
 summary(tree.expr)
